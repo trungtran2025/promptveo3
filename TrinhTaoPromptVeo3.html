@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trình tạo Prompt Veo 3</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+        }
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #374151; /* Dark gray text */
+        }
+        input[type="text"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db; /* Lighter gray border */
+            border-radius: 0.375rem;
+            margin-bottom: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+        input[type="text"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #2563eb; /* Blue border on focus */
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+        }
+        button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.375rem;
+            font-weight: 600;
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background-color: #2563eb; /* Blue */
+            color: white;
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #1d4ed8; /* Darker blue */
+        }
+        .btn-secondary {
+            background-color: #6b7280; /* Gray */
+            color: white;
+            border: none;
+        }
+        .btn-secondary:hover {
+            background-color: #4b5563; /* Darker gray */
+        }
+         .btn-tertiary {
+            background-color: #e5e7eb; /* Light Gray */
+            color: #374151; /* Dark Gray text */
+            border: 1px solid #d1d5db;
+        }
+        .btn-tertiary:hover {
+            background-color: #d1d5db; /* Medium Gray */
+        }
+        .prompt-output {
+            background-color: #f9fafb; /* Very light gray for output */
+            padding: 1rem;
+            border-radius: 0.375rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+            white-space: pre-wrap; /* Preserve line breaks */
+            word-wrap: break-word;
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border-left-color: #2563eb;
+            animation: spin 1s ease infinite;
+            display: none; /* Hidden by default */
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .message-box {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #2563eb;
+            color: white;
+            padding: 1rem;
+            border-radius: 0.375rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            font-size: 0.875rem;
+        }
+        .message-box.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-gray-800">Trình tạo Prompt cho Veo 3</h1>
+            <p class="text-gray-600 mt-2">Điền các thông tin bên dưới để tạo prompt cho video của bạn.</p>
+        </header>
+
+        <form id="promptForm" class="space-y-6">
+            <div>
+                <label for="subject">Chủ thể (Subject):</label>
+                <input type="text" id="subject" name="subject" placeholder="Ví dụ: một con mèo con tinh nghịch, một phi hành gia">
+            </div>
+
+            <div>
+                <label for="action">Hành động (Action):</label>
+                <input type="text" id="action" name="action" placeholder="Ví dụ: đang chơi với cuộn len, khám phá một hành tinh lạ">
+            </div>
+
+            <div>
+                <label for="setting">Bối cảnh/Môi trường (Setting/Environment):</label>
+                <input type="text" id="setting" name="setting" placeholder="Ví dụ: trong một căn phòng ngập nắng, trên một sa mạc đỏ">
+            </div>
+
+            <div>
+                <label for="visualStyle">Phong cách hình ảnh (Visual Style):</label>
+                <select id="visualStyle" name="visualStyle">
+                    <option value="">-- Chọn phong cách --</option>
+                    <option value="photorealistic">Chân thực (Photorealistic)</option>
+                    <option value="3D animation">Hoạt hình 3D</option>
+                    <option value="cinematic">Điện ảnh (Cinematic)</option>
+                    <option value="documentary">Phim tài liệu</option>
+                    <option value="watercolor painting">Tranh màu nước</option>
+                    <option value="oil painting">Tranh sơn dầu</option>
+                    <option value="pixel art">Pixel art</option>
+                    <option value="cyberpunk">Cyberpunk</option>
+                    <option value="steampunk">Steampunk</option>
+                    <option value="fantasy art">Nghệ thuật kỳ ảo</option>
+                    <option value="vintage film look">Phong cách phim cổ điển</option>
+                    <option value="black and white">Đen trắng</option>
+                    <option value="anime style">Phong cách Anime</option>
+                    <option value="claymation">Hoạt hình đất sét</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="cameraAngle">Góc máy/Khung hình (Camera Angle/Framing):</label>
+                <select id="cameraAngle" name="cameraAngle">
+                    <option value="">-- Chọn góc máy --</option>
+                    <option value="close-up shot">Cận cảnh (Close-up)</option>
+                    <option value="medium shot">Trung cảnh (Medium shot)</option>
+                    <option value="long shot">Toàn cảnh (Long shot)</option>
+                    <option value="extreme long shot">Cực kỳ toàn cảnh (Extreme long shot)</option>
+                    <option value="eye-level shot">Góc máy ngang tầm mắt</option>
+                    <option value="high-angle shot">Góc máy cao (High-angle)</option>
+                    <option value="low-angle shot">Góc máy thấp (Low-angle)</option>
+                    <option value="drone shot">Quay từ drone (Drone shot)</option>
+                    <option value="first-person view">Góc nhìn người thứ nhất (FPV)</option>
+                    <option value="tracking shot">Máy quay theo dõi (Tracking shot)</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="lighting">Ánh sáng (Lighting):</label>
+                <select id="lighting" name="lighting">
+                    <option value="">-- Chọn ánh sáng --</option>
+                    <option value="soft morning light">Ánh sáng ban mai dịu nhẹ</option>
+                    <option value="golden hour lighting">Ánh sáng giờ vàng</option>
+                    <option value="bright daylight">Ánh sáng ban ngày rực rỡ</option>
+                    <option value="dramatic cinematic lighting">Ánh sáng điện ảnh kịch tính</option>
+                    <option value="neon lights">Ánh đèn neon</option>
+                    <option value="moonlight">Ánh trăng</option>
+                    <option value="dark and moody lighting">Ánh sáng tối và u ám</option>
+                    <option value="studio lighting">Ánh sáng studio</option>
+                    <option value="volumetric lighting">Ánh sáng thể tích (Volumetric)</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="colorPalette">Bảng màu (Color Palette):</label>
+                <select id="colorPalette" name="colorPalette">
+                    <option value="">-- Chọn bảng màu --</option>
+                    <option value="vibrant and saturated colors">Màu sắc rực rỡ và bão hòa</option>
+                    <option value="pastel colors">Màu pastel nhẹ nhàng</option>
+                    <option value="monochromatic">Đơn sắc</option>
+                    <option value="warm color palette">Bảng màu tông ấm</option>
+                    <option value="cool color palette">Bảng màu tông lạnh</option>
+                    <option value="high contrast colors">Màu sắc tương phản cao</option>
+                    <option value="sepia tone">Tông màu nâu đỏ (Sepia)</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="additionalDetails">Chi tiết bổ sung (Additional Details):</label>
+                <textarea id="additionalDetails" name="additionalDetails" rows="3" placeholder="Ví dụ: video ngắn 5 giây, chuyển động chậm, có hiệu ứng lấp lánh, không có người"></textarea>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-4 mt-6">
+                <button type="button" id="generateBtn" class="btn-primary w-full sm:w-auto">Tạo Prompt Cơ bản</button>
+                <button type="button" id="enhanceBtn" class="btn-secondary w-full sm:w-auto">Nâng cao Prompt với AI</button>
+                <button type="button" id="clearBtn" class="btn-tertiary w-full sm:w-auto">Xóa đầu vào</button>
+            </div>
+        </form>
+
+        <div id="loadingSpinner" class="spinner mt-6"></div>
+
+        <div class="mt-8">
+            <h3 class="text-xl font-semibold text-gray-700">Prompt được tạo:</h3>
+            <div id="promptResult" class="prompt-output min-h-[100px]">
+                <p class="text-gray-500">Prompt của bạn sẽ xuất hiện ở đây...</p>
+            </div>
+            <button type="button" id="copyPromptBtn" class="btn-tertiary mt-2">Sao chép Prompt</button>
+        </div>
+
+        <div class="mt-8" id="enhancedPromptSection" style="display: none;">
+            <h3 class="text-xl font-semibold text-gray-700">Prompt được AI nâng cao (Tiếng Anh):</h3>
+             <p class="text-sm text-gray-500 mb-2">Prompt này được tạo bằng tiếng Anh để Veo hiểu tốt nhất.</p>
+            <div id="enhancedPromptResult" class="prompt-output min-h-[100px]">
+                 <p class="text-gray-500">Prompt nâng cao sẽ xuất hiện ở đây...</p>
+            </div>
+            <button type="button" id="copyEnhancedPromptBtn" class="btn-tertiary mt-2">Sao chép Prompt Nâng cao</button>
+        </div>
+    </div>
+
+    <div id="messageBox" class="message-box"></div>
+
+    <script>
+        const subjectEl = document.getElementById('subject');
+        const actionEl = document.getElementById('action');
+        const settingEl = document.getElementById('setting');
+        const visualStyleEl = document.getElementById('visualStyle');
+        const cameraAngleEl = document.getElementById('cameraAngle');
+        const lightingEl = document.getElementById('lighting');
+        const colorPaletteEl = document.getElementById('colorPalette');
+        const additionalDetailsEl = document.getElementById('additionalDetails');
+
+        const generateBtn = document.getElementById('generateBtn');
+        const enhanceBtn = document.getElementById('enhanceBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        
+        const promptResultEl = document.getElementById('promptResult');
+        const copyPromptBtn = document.getElementById('copyPromptBtn');
+
+        const enhancedPromptSection = document.getElementById('enhancedPromptSection');
+        const enhancedPromptResultEl = document.getElementById('enhancedPromptResult');
+        const copyEnhancedPromptBtn = document.getElementById('copyEnhancedPromptBtn');
+        
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const messageBox = document.getElementById('messageBox');
+
+        function showMessage(text, duration = 3000) {
+            messageBox.textContent = text;
+            messageBox.classList.add('show');
+            setTimeout(() => {
+                messageBox.classList.remove('show');
+            }, duration);
+        }
+
+        function generateBasicPrompt() {
+            const subject = subjectEl.value.trim();
+            const action = actionEl.value.trim();
+            const setting = settingEl.value.trim();
+            const visualStyle = visualStyleEl.value;
+            const cameraAngle = cameraAngleEl.value;
+            const lighting = lightingEl.value;
+            const colorPalette = colorPaletteEl.value;
+            const additionalDetails = additionalDetailsEl.value.trim();
+
+            if (!subject && !action && !setting && !visualStyle && !cameraAngle && !lighting && !colorPalette && !additionalDetails) {
+                promptResultEl.innerHTML = '<p class="text-red-500">Vui lòng nhập ít nhất một thông tin để tạo prompt.</p>';
+                return null;
+            }
+
+            let prompt = "";
+
+            if (visualStyle) {
+                prompt += `${visualStyle}`;
+            }
+            
+            if (subject) {
+                prompt += prompt ? `, ${subject}` : subject;
+            } else {
+                 prompt += prompt ? `, a scene` : `A scene`; // Default if no subject
+            }
+
+            if (action) {
+                prompt += ` ${action}`;
+            }
+
+            if (setting) {
+                prompt += ` ${setting.startsWith('in') || setting.startsWith('on') || setting.startsWith('at') ? '' : 'in '}${setting}`;
+            }
+            
+            if (cameraAngle) {
+                prompt += `, ${cameraAngle}`;
+            }
+
+            if (lighting) {
+                prompt += `, ${lighting}`;
+            }
+
+            if (colorPalette) {
+                prompt += `, ${colorPalette}`;
+            }
+            
+            if (additionalDetails) {
+                prompt += `. ${additionalDetails}`;
+            }
+
+            prompt = prompt.charAt(0).toUpperCase() + prompt.slice(1) + "."; // Capitalize and add period.
+            promptResultEl.textContent = prompt;
+            return prompt;
+        }
+
+        generateBtn.addEventListener('click', () => {
+            generateBasicPrompt();
+            enhancedPromptSection.style.display = 'none'; // Hide enhanced if basic is generated
+            enhancedPromptResultEl.innerHTML = '<p class="text-gray-500">Prompt nâng cao sẽ xuất hiện ở đây...</p>';
+        });
+
+        clearBtn.addEventListener('click', () => {
+            document.getElementById('promptForm').reset();
+            promptResultEl.innerHTML = '<p class="text-gray-500">Prompt của bạn sẽ xuất hiện ở đây...</p>';
+            enhancedPromptSection.style.display = 'none';
+            enhancedPromptResultEl.innerHTML = '<p class="text-gray-500">Prompt nâng cao sẽ xuất hiện ở đây...</p>';
+            showMessage('Đã xóa tất cả đầu vào.', 2000);
+        });
+
+        copyPromptBtn.addEventListener('click', () => {
+            const promptText = promptResultEl.textContent;
+            if (promptText && !promptText.includes("Prompt của bạn sẽ xuất hiện ở đây...") && !promptText.includes("Vui lòng nhập ít nhất một thông tin")) {
+                navigator.clipboard.writeText(promptText)
+                    .then(() => showMessage('Đã sao chép prompt cơ bản!'))
+                    .catch(err => {
+                        console.error('Lỗi sao chép: ', err);
+                        showMessage('Lỗi khi sao chép prompt.', 2000);
+                    });
+            } else {
+                showMessage('Không có prompt cơ bản để sao chép.', 2000);
+            }
+        });
+
+        copyEnhancedPromptBtn.addEventListener('click', () => {
+            const promptText = enhancedPromptResultEl.textContent;
+             if (promptText && !promptText.includes("Prompt nâng cao sẽ xuất hiện ở đây...")) {
+                navigator.clipboard.writeText(promptText)
+                    .then(() => showMessage('Đã sao chép prompt nâng cao!'))
+                    .catch(err => {
+                        console.error('Lỗi sao chép prompt nâng cao: ', err);
+                        showMessage('Lỗi khi sao chép prompt nâng cao.', 2000);
+                    });
+            } else {
+                showMessage('Không có prompt nâng cao để sao chép.', 2000);
+            }
+        });
+
+        enhanceBtn.addEventListener('click', async () => {
+            const subject = subjectEl.value.trim();
+            const action = actionEl.value.trim();
+            const setting = settingEl.value.trim();
+            const visualStyle = visualStyleEl.value;
+            const cameraAngle = cameraAngleEl.value;
+            const lighting = lightingEl.value;
+            const colorPalette = colorPaletteEl.value;
+            const additionalDetails = additionalDetailsEl.value.trim();
+
+            if (!subject && !action && !setting && !visualStyle && !cameraAngle && !lighting && !colorPalette && !additionalDetails) {
+                enhancedPromptResultEl.innerHTML = '<p class="text-red-500">Vui lòng nhập ít nhất một thông tin để AI có thể nâng cao prompt.</p>';
+                enhancedPromptSection.style.display = 'block';
+                promptResultEl.innerHTML = '<p class="text-gray-500">Prompt của bạn sẽ xuất hiện ở đây...</p>'; // Clear basic prompt area
+                return;
+            }
+            
+            promptResultEl.innerHTML = '<p class="text-gray-500">Prompt của bạn sẽ xuất hiện ở đây...</p>'; // Clear basic prompt area
+            enhancedPromptSection.style.display = 'block';
+            enhancedPromptResultEl.innerHTML = ''; // Clear previous enhanced prompt
+            loadingSpinner.style.display = 'block';
+            enhanceBtn.disabled = true;
+            generateBtn.disabled = true;
+
+            const userPromptParts = [];
+            if (subject) userPromptParts.push(`Chủ thể: ${subject}`);
+            if (action) userPromptParts.push(`Hành động: ${action}`);
+            if (setting) userPromptParts.push(`Bối cảnh: ${setting}`);
+            if (visualStyle) userPromptParts.push(`Phong cách hình ảnh: ${visualStyle}`);
+            if (cameraAngle) userPromptParts.push(`Góc máy: ${cameraAngle}`);
+            if (lighting) userPromptParts.push(`Ánh sáng: ${lighting}`);
+            if (colorPalette) userPromptParts.push(`Bảng màu: ${colorPalette}`);
+            if (additionalDetails) userPromptParts.push(`Chi tiết thêm: ${additionalDetails}`);
+
+            const systemPrompt = `Bạn là một chuyên gia sáng tạo prompt cho mô hình AI tạo video Veo. Dựa trên các yếu tố sau do người dùng cung cấp, hãy tạo một prompt chi tiết, gợi hình và đầy cảm hứng bằng TIẾNG ANH. Prompt tiếng Anh này sẽ được sử dụng trực tiếp với Veo.
+Hãy tập trung vào việc tạo ra một mô tả sống động, kết hợp các yếu tố một cách tự nhiên. Sử dụng từ ngữ phong phú và cụ thể. Tránh các câu nói chung chung. Prompt nên có độ dài vừa phải, đủ chi tiết nhưng không quá dài dòng.
+
+Các yếu tố từ người dùng (bằng tiếng Việt, bạn cần hiểu và chuyển ngữ ý tưởng sang prompt tiếng Anh):
+${userPromptParts.join('\n')}
+
+Hãy tạo ra một prompt tiếng Anh hoàn chỉnh. Ví dụ: "A breathtaking cinematic shot of a lone astronaut discovering a bioluminescent forest on an alien planet, vibrant flora glowing with ethereal light, volumetric mist, high-angle shot emphasizing the vastness, mysterious and awe-inspiring atmosphere."
+`;
+            
+            let chatHistory = [{ role: "user", parts: [{ text: systemPrompt }] }];
+            const payload = { contents: chatHistory };
+            const apiKey = ""; // API key will be injected by the environment if needed
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('API Error:', errorData);
+                    throw new Error(`Lỗi API: ${response.status} ${response.statusText}. Chi tiết: ${errorData?.error?.message || 'Không có thông tin chi tiết'}`);
+                }
+
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    enhancedPromptResultEl.textContent = text;
+                } else {
+                    console.error('API response structure unexpected:', result);
+                    enhancedPromptResultEl.textContent = 'Không thể tạo prompt nâng cao. Vui lòng thử lại.';
+                }
+            } catch (error) {
+                console.error('Lỗi khi gọi Gemini API:', error);
+                enhancedPromptResultEl.textContent = `Đã xảy ra lỗi: ${error.message}. Vui lòng kiểm tra console để biết thêm chi tiết.`;
+            } finally {
+                loadingSpinner.style.display = 'none';
+                enhanceBtn.disabled = false;
+                generateBtn.disabled = false;
+            }
+        });
+
+        // Initialize with empty prompt areas
+        promptResultEl.innerHTML = '<p class="text-gray-500">Prompt của bạn sẽ xuất hiện ở đây...</p>';
+        enhancedPromptResultEl.innerHTML = '<p class="text-gray-500">Prompt nâng cao sẽ xuất hiện ở đây...</p>';
+
+    </script>
+</body>
+</html>
